@@ -9,6 +9,7 @@ import static org.junit.jupiter.api.Assertions.*;
 
 import static org.mockito.Mockito.mockitoSession;
 
+import java.util.Iterator;
 import java.util.logging.Logger;
 
 import org.junit.jupiter.api.BeforeAll;
@@ -50,6 +51,8 @@ class BagManagerTest {
 	private static Product producto1Mock= Mockito.mock(Product.class);
 	@Mock(serializable = true)
 	private static Product producto2Mock= Mockito.mock(Product.class);
+	@Mock(serializable = true)
+	private static Product producto3Mock= Mockito.mock(Product.class);
 	@Mock
 	private static StockManager stockMock= Mockito.mock(StockManager.class);
 	@Mock 
@@ -107,7 +110,7 @@ class BagManagerTest {
 		Mockito.verify(repositoryMock).save(orderMock);
 		
 		//EJERCICIO: Elimine este comentario, ejecute los test
-		//	Mockito.verifyZeroInteractions(repositoryMock); 
+		//Mockito.verifyZeroInteractions(repositoryMock); 
 		// ¿Por qué falla el test si se pone aquí esta comprobación?
 		
 		//si no se pueda guardar el stock no se guarda el pedido, no se llega a tocar el repositorio ni se modifica order, y mi cesta gestiona la excepción, no debe propagarse y por tanto no debe lanzarla
@@ -270,6 +273,56 @@ class BagManagerTest {
 		Mockito.when(producto2Mock.getNumber()).thenReturn(2);
 		micestaTesteada.addProduct(producto1Mock);
 		micestaTesteada.addProduct(producto2Mock);
+	}
+	
+	@Test
+	@Tag("unidad")
+	@DisplayName("Prueba")
+    void test_iterador_mas_menos() throws NoEnoughStock, NotInStock 
+	{
+		//Inicializo los mocks
+		Mockito.when(producto1Mock.getId()).thenReturn("id1");
+		Mockito.when(producto1Mock.getNumber()).thenReturn(1);
+		Mockito.when(producto2Mock.getId()).thenReturn("id2");
+		Mockito.when(producto2Mock.getNumber()).thenReturn(2);
+		Mockito.when(producto3Mock.getId()).thenReturn("id3");
+		Mockito.when(producto3Mock.getNumber()).thenReturn(3);	
+		//Agrego los productos a la cesta considerando que se añadieron correctamente
+		micestaTesteada.addProduct(producto1Mock);
+		micestaTesteada.addProduct(producto2Mock);		
+		micestaTesteada.addProduct(producto3Mock);
+		Iterator<Product> iterador=micestaTesteada.getUnitsIterator();
+		//Pruebo que no esta vacia
+		if (!iterador.hasNext()) // Si no tiene siguiente, es porque esta vacia
+		{
+			fail("El iterador fue recibido vacio");
+		}
+		//Comprobamos que esten en orden de mayor a menor.
+		if (!(producto3Mock.getNumber()==iterador.next().getNumber()))
+		{
+			fail("El iterador no está ordenando correctamente (posicion1)");			
+		}
+		if (!iterador.hasNext()) // Si no tiene siguiente, es porque tiene un solo producto
+		{
+			fail("No se tienen todos los elementos que se metieron en la cesta");
+		}
+		if (!(producto2Mock.getNumber()==iterador.next().getNumber()))
+		{
+			fail("El iterador no está ordenando correctamente (posicion2)");			
+		}
+		if (!iterador.hasNext()) // Si no tiene siguiente, es porque tiene dos productos
+		{
+			fail("No se tienen todos los elementos que se metieron en la cesta");
+		}
+		if (!(producto1Mock.getNumber()==iterador.next().getNumber()))
+		{
+			fail("El iterador no está ordenando correctamente (posicion3)");			
+		}
+		if (iterador.hasNext()) // Si tiene siguiente, es porque tiene productos demas
+		{
+			fail("La cesta tiene mas productos de lo esperado");
+		}
+		//fail("Not yet implemented");
 	}
 
 }
